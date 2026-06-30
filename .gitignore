@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.venv
+__pycache__/
+*.pyc
+backend/.env
+backend/data/
+work/.venv-backend/
+.gradle/
+local.properties
+app/build/
+backend/.pytest_cache/
+outputs/
+work/
+*.apk
+*.keystore
+*.jks

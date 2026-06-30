@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Spotify Frame</string>
+    <string name="waiting_title">Spotify Frame</string>
+    <string name="playing_label">PLAYING</string>
+    <string name="paused_label">PAUSED</string>
+    <string name="waiting_overlay">Waiting for data...</string>
+    <string name="reconnecting_overlay">Reconnecting...</string>
+    <string name="control_auth_needed">Authorize playback on backend</string>
+    <string name="no_cover">NO COVER</string>
+    <string name="unknown_title">Unknown title</string>
+    <string name="control_previous_desc">Previous track</string>
+    <string name="control_pause_desc">Pause</string>
+    <string name="control_play_desc">Play</string>
+    <string name="control_next_desc">Next track</string>
+</resources>

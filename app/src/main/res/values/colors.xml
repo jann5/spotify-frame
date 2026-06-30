@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#000000</color>
+    <color name="title_text">#F5F5F5</color>
+    <color name="body_text">#D1D1D1</color>
+    <color name="subtle_text">#7E7E7E</color>
+    <color name="state_text">#1DB954</color>
+    <color name="paused_text">#A0A0A0</color>
+    <color name="overlay_text">#8C8C8C</color>
+    <color name="cover_background">#111111</color>
+    <color name="cover_border">#232323</color>
+    <color name="progress_fill">#F2F2F2</color>
+    <color name="progress_track">#3A3A3A</color>
+    <color name="control_text">#D8D8D8</color>
+    <color name="control_time_text">#B7B7B7</color>
+    <color name="control_pressed">#202020</color>
+    <color name="control_border">#2F2F2F</color>
+    <color name="control_background">#171717</color>
+</resources>
