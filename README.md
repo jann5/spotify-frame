@@ -1,66 +1,92 @@
 # Spotify Frame
 
-Turn an old Android 4.2.2 digital photo frame into a dedicated Spotify Now Playing display.
-
-This project started on a forgotten 1024x600 Wi-Fi frame with a prehistoric Android build, a working ADB shell, and a very specific goal: keep the device dumb, fast, and stable. The Android app is only a thin LAN client. All Spotify auth, album art fetching, and playback state logic live on a local backend running on a Mac or Raspberry Pi.
+> Turning a forgotten Android 4.2.2 photo frame into a dedicated Spotify now-playing display.
 
 ![Spotify Frame UI](docs/images/spotify-frame-ui.png)
 
+`Android 4.2.2` `minSdk 17` `Java only` `Raspberry Pi backend` `Spotify Connect`
+
+## Overview
+
+Spotify Frame is a thin Android client plus a small LAN backend.
+
+The idea is simple:
+
+- keep the old frame dumb and stable
+- keep Spotify auth off the Android device
+- render clean, readable now-playing UI from across the room
+- let a Mac or Raspberry Pi handle the real logic
+
+This project started on an old 1024x600 Wi-Fi photo frame with ADB access, a weird OEM launcher, and just enough hardware left to be useful.
+
+## Why It Is Interesting
+
+Most now-playing projects take the easy route:
+
+- modern tablet
+- web app
+- full Spotify client on-device
+
+This one does the opposite:
+
+- Android 4.2.2
+- no AndroidX
+- no Kotlin
+- no WebView
+- one Java `Activity`
+- local HTTP only
+
+That constraint is the whole point. It turns a nearly useless device into a focused, always-on display.
+
 ## What It Does
 
-- Runs on Android 4.2.2 with `minSdkVersion 17`
-- Uses a single Java `Activity` and plain Android SDK classes
-- Polls a local backend for now-playing metadata
-- Shows title, artist, album, playback state, progress, and cover art
-- Keeps the screen awake in a fullscreen kiosk-style layout
-- Works best with a Raspberry Pi running `raspotify/librespot`
-- Keeps Spotify secrets off the frame
+- fetches now-playing data from a local backend every few seconds
+- shows title, artist, album, state, progress, and cover art
+- runs fullscreen in a kiosk-style layout
+- keeps the screen awake
+- works with `raspotify/librespot` on a Raspberry Pi
+- supports touch controls when Spotify account permissions allow it
 
 ## Architecture
 
-```text
-Spotify app / Spotify Connect
-            |
-            v
-   Raspotify / Librespot on Pi
-            |
-            +--> event bridge -> local state JSON
-            |
-            +--> Flask backend
-                    |- /api/now
-                    |- /api/control
-                    |- /cover.jpg
-                    '- /health
-            |
-            v
-  Android 4.2.2 frame app (thin client)
+```mermaid
+flowchart LR
+    A["Spotify app / Spotify Connect"] --> B["Raspotify / Librespot"]
+    B --> C["Event bridge"]
+    C --> D["Flask backend"]
+    D --> E["/api/now"]
+    D --> F["/api/control"]
+    D --> G["/cover.jpg"]
+    D --> H["/health"]
+    E --> I["Android frame client"]
+    F --> I
+    G --> I
 ```
 
-## Why This Exists
+## Hardware Context
 
-Most smart display projects target new tablets, webviews, or full Spotify SDK integrations. This one deliberately does not.
+Current target setup:
 
-The frame stays a render-only client:
+- old Android photo frame
+- Android `4.2.2`
+- screen `1024x600`
+- `adb` access
+- Raspberry Pi backend on the same LAN
 
-- no Spotify credentials on Android
-- no WebView
-- no AndroidX
-- no Kotlin
-- no `/system` changes required for the normal app build
+The Android app is intentionally a render-only client. Spotify credentials, token refresh, cover caching, and playback state live on the backend.
 
-That made it possible to repurpose a strange old OEM frame into something that still boots instantly and can be read from across the room.
-
-## Project Layout
+## Project Structure
 
 ```text
 app/       Android client
-backend/   Flask + Spotipy + librespot event bridge
+backend/   Flask backend, Spotipy integration, librespot event bridge
 gradle/    Gradle wrapper files
+docs/      README assets
 ```
 
 ## Quick Start
 
-### 1. Start the backend
+### 1. Run the backend
 
 ```sh
 python3 -m venv work/.venv-backend
@@ -71,9 +97,9 @@ python backend/authorize.py
 python backend/run.py
 ```
 
-For Raspberry Pi + `raspotify`, use the event bridge documented in [backend/README.md](backend/README.md).
+For Raspberry Pi + `raspotify`, see [backend/README.md](backend/README.md).
 
-### 2. Build the Android APK
+### 2. Build the APK
 
 ```sh
 ./gradlew -PspotifyFrameBackendUrl=http://192.168.1.50:8000 assembleDebug
@@ -96,30 +122,43 @@ adb shell am start -n com.janek.spotifyframe/.MainActivity
 - `HttpURLConnection`
 - `org.json.JSONObject`
 
-## Current State
+## Current Status
 
-What is already solid:
+Already working:
 
-- backend-driven now-playing display
-- Android 4.2.2 compatibility
-- local cover caching
+- Android 4.2.2-compatible display client
+- local backend with Spotify auth
+- album art caching
+- fullscreen now-playing UI
 - progress rendering
-- touch controls for same-account playback control
-- Pi-local `librespot` event ingestion
+- touch playback controls
+- Raspberry Pi deployment
 
-What can still be improved:
+Still worth improving:
 
-- smarter album-art fallbacks
-- more polished onboarding for first-time backend auth
-- optional autostart / launcher replacement tooling
-- extra screenshots and real device photos
+- stronger resilience when router IPs change
+- cleaner first-time setup flow
+- smarter fallback behavior for missing playback state
+- optional voice control / wake-word mode
+- better real-world photos of the hardware
+
+## Design Constraints
+
+The app deliberately stays minimal:
+
+- no Spotify secrets on Android
+- no `/system` modification required for the normal APK flow
+- no heavy UI framework
+- no modern compatibility stack unless truly needed
+
+That keeps the frame lightweight and makes the system easier to reason about when something on the network changes.
 
 ## Notes
 
-- The repository intentionally does not include local `.env` files, Spotify tokens, APK outputs, or extracted factory system files.
-- The screenshot above is a safe UI capture; real frame photos can be added later.
-- If playback is controlled from a different Spotify account than the one authorized for backend control, the display still works, but touch controls may be limited by Spotify Connect / `librespot`.
+- This repo does not include live Spotify tokens, local `.env` files, APK outputs, or extracted OEM system backups.
+- Cover art and playback data are served over LAN, so the backend host matters.
+- If playback is controlled from a different Spotify account than the one authorized for control, display can still work while touch controls may be limited.
 
 ## Backend Details
 
-More technical backend setup, API details, and Raspberry Pi notes are in [backend/README.md](backend/README.md).
+API contract, Raspberry Pi setup, and backend-specific notes live in [backend/README.md](backend/README.md).
